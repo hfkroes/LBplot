@@ -13,6 +13,9 @@ def menu():
 	1-Yes, return to main menu
 	2-No, end program''')
 
+def sep():
+	print('----------------------------------------------------------')
+
 V0 = []
 S = []
 
@@ -25,9 +28,12 @@ while st == 'start':
 	print('''What would you like to access?
 	1-Execute program
 	2-References
-	3-Licence''')
+	3-Licence
+	4-End program''')
 	ii = input()
-	if ii == '1':
+	if ii == '4':
+		break
+	elif ii == '1':
 		cls()
 		print('''Would you like to insert values of V0 and [S] or 1/V0 and 1/[S]?
 	1- V0 and [S]
@@ -36,12 +42,15 @@ while st == 'start':
 		print('''Which are the the unities your data use?
 V0:''')
 		u = input()
+		uV = u.split('/')
 		print('[S]:')
 		v = input()
 		print('''What input format do you prefer?
 	1- Separated by commas (x, y, z, h, i, j)
 	2- Individually (x)''')
 		h = input()
+		if k == '0':
+			continue
 		if k == '1':
 			if h == '1':
 				print('Insert V0 values:')
@@ -137,7 +146,7 @@ V0:''')
 
 		plt.scatter(x, y)
 
-		slope, intercept, r, p, std_err = stats.linregress(x, y)
+		slope, intercept, rv, pv, std_err = stats.linregress(x, y)
 
 		def erro(x, z):
 			a = []
@@ -147,7 +156,6 @@ V0:''')
 				a.append(at)
 			atot = (sum(a)/(len(x)-z))
 			return atot
-
 
 		errorg2 = erro(x, 0)
 		errorg = (math.sqrt(errorg2))
@@ -167,18 +175,37 @@ V0:''')
 		plt.plot([0], [intercept],'go', label = 'Km = '+str((slope/intercept)))
 		plt.suptitle('Lineweaver-Burk double reciprocal plot')
 		plt.xlabel('1/[S] '+'(1/'+v+')', color='#298A08')
-		plt.ylabel('1/V0 '+'(1/'+u+')', color='#01DFD7')
+		if len(uV) == 1:
+			plt.ylabel('1/V0 '+'(1/'+u+')', color='#01DFD7')
+		elif len(uV) == 2:
+			plt.ylabel('1/V0 '+'('+str(uV[1])+'/'+str(uV[0])+')', color='#01DFD7')
 		plt.legend()
 		plt.grid()
 		cls()
-		print('                        DATA SET')
-		print('        V0          1/V0          [S]          1/[S]')
-		print('   ------------ ------------ ------------- ------------')
+		print('                        DATA SET\n')
+		sep()
+		print('|   |     V0     |    1/V0    |     [S]     |    1/[S]   |')
+		sep()
 		for a in range(0,len(tmpV0)):
-			print(str(a+1)+' |  '+str("{:.2e}".format(float(tmpV0[a])))+'  |  '+str("{:.2e}".format(float(oV0[a])))+'  |  '+str("{:.2e}".format(float(tmpS[a])))+'   |  '+str("{:.2e}".format(float(oS[a])))+'  |')
-		print('   ------------ ------------ ------------- ------------')
-		print('\n                VARIANCES AND DEVIATIONS')
-		print('\nPopulation Variance (σ^2) = '+str("{:.2e}".format(errorg2))+'\nPopulation Standard Deviation (σ) = '+str("{:.2e}".format(errorg))+'\nSample Variance (S^2) = '+str("{:.2e}".format(errors2))+'\nSample Standard Deviation (S) = '+str("{:.2e}".format(errors)))
+			print('| '+str(a+1)+' |  '+str("{:.2e}".format(float(tmpV0[a])))+'  |  '+str("{:.2e}".format(float(oV0[a])))+'  |  '+str("{:.2e}".format(float(tmpS[a])))+'   |  '+str("{:.2e}".format(float(oS[a])))+'  |')
+		sep()
+		print('\n                       KM AND VMAX\n')
+		sep()
+		print('| Michaelis constant (Km)                 '+str("{:.5e}".format(slope/intercept))+'    |\n| Maximum Reaction Rate (Vmax)            '+str("{:.5e}".format(1/intercept))+'    |\n| Slope (Km/Vmax)                         '+str("{:.5e}".format(slope)) +'    |')
+		sep()
+		print('\n                    LINEAR REGRESSION\n')
+		sep()
+		if std_err>=100:
+			print('| Correlation Coefficient (R)             '+str(round(rv, 9))+'    |\n| Coefficient of Determination (R^2)      '+str(round(rv**2, 9))+'    |\n| Standard error                        '+str(round(std_err, 9))+'    |\n| P-Value                                 '+Pstat(pv)+'    |')
+		elif std_err>=10:
+			print('| Correlation Coefficient (R)             '+str(round(rv, 9))+'    |\n| Coefficient of Determination (R^2)      '+str(round(rv**2, 9))+'    |\n| Standard error                         '+str(round(std_err, 9))+'    |\n| P-Value                                 '+str("{:.5e}".format(pv))+'    |')
+		else:
+			print('| Correlation Coefficient (R)             '+str(round(rv, 9))+'    |\n| Coefficient of Determination (R^2)      '+str(round(rv**2, 9))+'    |\n| Standard error                          '+str(round(std_err, 9))+'    |\n| P-Value                                 '+str("{:.5e}".format(pv))+'    |')
+		sep()
+		print('\n                 VARIANCES AND DEVIATIONS\n')
+		sep()
+		print('| Population Variance (σ^2)                  '+str("{:.2e}".format(errorg2))+'    |\n| Population Standard Deviation (σ)          '+str("{:.2e}".format(errorg)) +'    |\n| Sample Variance (S^2)                      '+str("{:.2e}".format(errors2))+'    |\n| Sample Standard Deviation (S)              '+str("{:.2e}".format(errors)) +'    |')
+		sep()
 		plt.show()
 
 		menu()
@@ -190,8 +217,7 @@ V0:''')
 
 	if ii=='2':
 		cls()
-		print('''Lineweaver, H., & Burk, D. (1934). The Determination of Enzyme Dissociation Constants. 
-Journal of the American Chemical Society, 56(3), 658–666. doi:10.1021/ja01318a036
+		print('''Lineweaver, H., & Burk, D. (1934). The Determination of Enzyme Dissociation Constants. Journal of the American Chemical Society, 56(3), 658–666. doi:10.1021/ja01318a036
 
 Michaelis, L., and Menten, M. L. (1913) Die Kinetik der Invertinwirkung. Biochem. Z. 49, 333–369
 
@@ -220,7 +246,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			print('\nInput 1 to continue:')
 			ma = input()
 		cls()
-		print('''Note: It would be very kind if you could email me saying you used this program and perhaps suggesting some improvements.
+		print('''Note: It would be very kind if you could email me saying if you used this program and perhaps suggest improvements.
 
 Contact: hector.kroes@outlook.com
 
