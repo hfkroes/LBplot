@@ -1,21 +1,9 @@
 '''
-Program: LBplot v2.4
+Program: LBplot v3.0
 Author: Hector Kroes
 Released: 04/23/2020
 Available in <https://github.com/HectorKroes/LBplot>
 '''
-
-##LICENSE##
-
-License = ('''MIT License
-
-Copyright (c) 2020 Hector Fugihara Kroes
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.''')
 
 ##REFERENCES##
 
@@ -34,74 +22,18 @@ References = ('''
 
 ##IMPORTS##
 
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import time, math, copy, os, sys, codecs, datetime, calendar
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.ticker import NullFormatter
 import matplotlib.pyplot as plt
-import time, math, copy, os
+from datetime import datetime
+import PySimpleGUI as sg
 from scipy import stats
 import pandas as pd
 import numpy as np
 
-
 ##FUNCTIONS##
-
-def cls():
-    os.system('cls' if os.name=='nt' else 'clear')
-    print('LBplot - Lineweaver-Burk linear graph plotter for Michaelis-Menten enzime kinetics')
-    if prjname != '':
-    	print('Project: '+prjname+'\n')
-    else:
-    	print()
-
-def menu():
-	print ('''\nWould you like to return to the main menu?
-	1-Yes, return to main menu
-	2-No, end program''')
-
-def sep():
-	print('----------------------------------------------------------')
-
-def format(a, j):
-	c = []
-	for b in a:
-		c.append(j.format(float(b)))
-	return c
-
-def pdftable(df):
-	print('\nHow should the pdf file be called?')
-	fileDST = input()
-	fig, ax =plt.subplots(figsize=(12,4))
-	ax.axis('tight')
-	ax.axis('off')
-	the_table = ax.table(cellText=df.values, colLabels=df.columns, loc= 'center')
-	pp = PdfPages(arq+fileDST.replace('.pdf', '')+'.pdf')
-	pp.savefig(fig, bbox_inches='tight')
-	pp.close()
-	print(('\n'+fileDST.replace('.pdf', '')+'.pdf')+ ' created successfully!')
-	time.sleep(2)
-	plt.clf()
-	plt.close()
-
-def exceltable(df):
-	print('\nHow should the excel file be called?')
-	fileDST = input()
-	df.to_excel (arq+(fileDST.replace('.xlsx', '')+'.xlsx'), index = False, header=True)
-	print('\n'+fileDST.replace('.xlsx', '')+'.xlsx'+ ' created successfully!')
-	time.sleep(2)
-	plt.clf()
-	plt.close()
-
-def opt():
-	print('''\nWould you like to
-	1-Save as PDF
-	2-Export to Excel
-	3-Return to data hub''')
-
-def savefig(ext):
-	print('\nHow should the pdf file be called?')
-	namt = ((input().replace(ext, ''))+ext)
-	plt.savefig(arq+namt)
-	print('\n'+namt+' created successfully!')
-	time.sleep(3)
 
 def erro(x, z):
 	a = []
@@ -118,12 +50,118 @@ def floatit(a):
 		b.append(float(aa))
 	return b
 
+def breaqui():
+	global sm
+	sm = 'end'
+	global st
+	st = 'end'
+
+def format(a, j):
+	c = []
+	for b in a:
+		c.append(j.format(float(b)))
+	return c
+
+def DI():
+	layout1 = [  [sg.Image(os.getcwd()+os.sep+'Logo.png')],
+			[sg.Text('')],
+			[sg.Button('Start new project', size = (40,1))],
+			[sg.Button('Load previous projects', size = (40,1))],
+			[sg.Button('References', size = (40,1))],
+			[sg.Button('Credits', size = (40,1))],
+			[sg.Button('End program', size = (40,1))],
+			[sg.Text('')]]
+
+	global de
+	de = sg.Window('LBplot', layout1, element_justification = 'center')
+
+def pdftable(df):
+	RNG3 = [[sg.Text("What should be the archive name?")],
+		[sg.InputText('', size = (51,1), key= '-archnam-')],
+		[sg.Text("                                             "), sg.Button('Continue', size = (20,1), key = '-namt-')]]
+	dp = sg.Window('LBplot', RNG3, element_justification = 'left')
+	eventp, valuep = dp.read()
+	namt = ((str(valuep['-archnam-']).replace('.pdf', ''))+'.pdf')
+	dp.close()
+	fig, ax =plt.subplots(figsize=(12,4))
+	ax.axis('tight')
+	ax.axis('off')
+	the_table = ax.table(cellText=df.values, colLabels=df.columns, loc= 'center')
+	pp = PdfPages(arq+namt)
+	pp.savefig(fig, bbox_inches='tight')
+	pp.close()
+	RNG4 = [[sg.Text(namt+" created successfully!")],
+		[sg.Button('Continue', size = (21,1), key = '-rnm2-')]]
+	dc = sg.Window('LBplot', RNG4, element_justification = 'center')
+	eventc, valuec = dc.read()
+	dc.close()
+	plt.clf()
+	plt.close()
+
+def exceltable(df):
+	RNG3 = [[sg.Text("What should be the archive name?")],
+		[sg.InputText('', size = (51,1), key= '-archnam-')],
+		[sg.Text("                                             "), sg.Button('Continue', size = (20,1), key = '-namt-')]]
+	dp = sg.Window('LBplot', RNG3, element_justification = 'left')
+	eventp, valuep = dp.read()
+	namt = ((str(valuep['-archnam-']).replace('.xlsx', ''))+'.xlsx')
+	dp.close()
+	df.to_excel (arq+namt, index = False, header=True)
+	RNG4 = [[sg.Text(namt+" created successfully!")],
+		[sg.Button('Continue', size = (21,1), key = '-rnm2-')]]
+	dc = sg.Window('LBplot', RNG4, element_justification = 'center')
+	eventc, valuec = dc.read()
+	dc.close()
+	plt.clf()
+	plt.close()
+
+def savefig(ext):
+	RNG1 = [[sg.Text("What should be the archive name?")],
+		[sg.InputText('', size = (51,1), key= '-archnam-')],
+		[sg.Text("                                             "), sg.Button('Continue', size = (20,1), key = '-namt-')]]
+	dp = sg.Window('LBplot', RNG1, element_justification = 'left')
+	kt = 'a'
+	while kt == 'a':
+		eventp, valuep = dp.read()
+		if eventp == '-namt-':
+			namt = ((str(valuep['-archnam-']).replace(ext, ''))+ext)
+			dp.close()
+			plt.savefig(arq+namt)
+			RNG2 = [[sg.Text(namt+" created successfully!")],
+			[sg.Button('Continue', size = (21,1), key = '-rnm2-')]]
+			dc = sg.Window('LBplot', RNG2, element_justification = 'center')
+			kd = 'a'
+			while kd == 'a':
+				eventc, valuec = dc.read()
+				if eventc == '-rnm2-':
+					dc.close()
+					kt='b'
+					kd='b'
+					break
+				elif event in (None, 'Exit'):
+					dc.close()
+					kt='b'
+					kd='b'
+					breaqui()
+					break
+
+def pltnow(title, xx, yy, mymodel, x, uV, v):
+	plt.plot(x, mymodel, '-r')
+	plt.plot([xx], [yy], 'bo')
+	plt.xlim(0,)
+	plt.ylim(0,)
+	plt.suptitle(title)
+	plt.xlabel('1/[S] '+'(1/'+v+')', color='#298A08')
+	if len(uV) == 1:
+		plt.ylabel('1/V0 '+'(1/'+u+')', color='#B40404')
+	elif len(uV) == 2:
+		plt.ylabel('1/V0 '+'('+str(uV[1])+'/'+str(uV[0])+')', color='#B40404')
+	plt.grid()
+
 def bulk():
 
 	x = copy.copy(oS)
-	print(x)
 	y = copy.copy(oV0)
-	print(y)
 
 	xx = copy.copy(x)
 	yy = copy.copy(y)
@@ -146,84 +184,152 @@ def bulk():
 	title = 'Lineweaver-Burk double reciprocal plot'
 	sm = 'start'
 	while sm == 'start':
-		cls()
-		print('                        DATA SET')
-		sep()
-		print('|   |     V0     |    1/V0    |     [S]     |    1/[S]   |')
-		sep()
-		for a in range(0,len(tmpV0)):
-			print('| '+str(a+1)+' |  '+str("{:.2e}".format(float(tmpV0[a])))+'  |  '+str("{:.2e}".format(float(oV0[a])))+'  |  '+str("{:.2e}".format(float(tmpS[a])))+'   |  '+str("{:.2e}".format(float(oS[a])))+'  |')
-		sep()
-		print('\n                       KM AND VMAX')
-		sep()
-		print('| Michaelis constant (Km)                 '+str("{:.5e}".format(slope/intercept))+'    |\n| Maximum Reaction Rate (Vmax)            '+str("{:.5e}".format(1/intercept))+'    |\n| Slope (Km/Vmax)                         '+str("{:.5e}".format(slope)) +'    |')
-		sep()
-		print('\n                    LINEAR REGRESSION')
-		sep()
-		print('| Correlation Coefficient (R)             '+str("{:.5e}".format(rv))+'    |\n| Coefficient of Determination (R^2)      '+str("{:.5e}".format(rv**2))+'    |\n| Standard error                          '+str("{:.5e}".format(std_err))+'    |\n| P-Value                                 '+str("{:.5e}".format(pv))+'    |')
-		sep()
-		print('\n                 VARIANCES AND DEVIATIONS')
-		sep()
-		print('| Population Variance (σ^2)               '+str("{:.5e}".format(errorg2))+'    |\n| Population Standard Deviation (σ)       '+str("{:.5e}".format(errorg)) +'    |\n| Sample Variance (S^2)                   '+str("{:.5e}".format(errors2))+'    |\n| Sample Standard Deviation (S)           '+str("{:.5e}".format(errors)) +'    |')
-		sep()
 
-		print ('''\nOPTIONS
-1-Open/Save Graph
-2-Save/Export data set table
-3-Save/Export Km and Vmax table
-4-Save/Export linear regression table
-5-Save/Export variances and deviations table
-6-Return to main menu
-7-End program''')
-		global me
-		me = input()
-		if me == '1':
-			cls()
-			if title == 'Lineweaver-Burk double reciprocal plot':
-				print('What will the graph title be?')
-				title = input()
-				cls()
-			print(title.upper())
-			print('''\nWould you like to
-1-Display plot
-2-Save as PDF
-3-Save as PNG
-4-Save as JPG
-5-Return to data hub''')
-			mza = input()
-			plt.plot(x, mymodel, '-r')
-			plt.plot([xx], [yy], 'bo')
-			plt.xlim(0,)
-			plt.ylim(0,)
-			plt.suptitle(title)
-			plt.xlabel('1/[S] '+'(1/'+v+')', color='#298A08')
-			if len(uV) == 1:
-				plt.ylabel('1/V0 '+'(1/'+u+')', color='#B40404')
-			elif len(uV) == 2:
-				plt.ylabel('1/V0 '+'('+str(uV[1])+'/'+str(uV[0])+')', color='#B40404')
-			plt.grid()
-			if mza == '1':
-				plt.show()
-				plt.clf()
-				plt.close()
-			elif mza == '2':
-				savefig('.pdf')
-				plt.clf()
-				plt.close()
-			elif mza == '3':
-				savefig('.png')
-				plt.clf()
-				plt.close()
-			elif mza == '4':
-				savefig('.jpg')
+		layout3 = [[sg.T('DATA SET', size=(103,1), justification='center')]]
+
+		headings1 = [' ','V0','1/V0','[S]','1/[S]']
+
+		leg1 = [sg.T(a, size=(20,1), background_color='white', justification='center', pad=(1,1)) for a in headings1]
+		layout3.append(leg1)
+
+		for a in range(len(oV0)):
+			data1 = [ a+1, "{:.2e}".format(float(tmpV0[a])), "{:.2e}".format(float(oV0[a])), "{:.2e}".format(float(tmpS[a])), "{:.2e}".format(float(oS[a]))]
+			row = [sg.T(a, size=(20,1), background_color='white', justification='center', pad=(1,1)) for a in data1]
+			layout3.append(row)
+
+		line = [sg.T('', size=(20,1), justification='center', pad=(1,1))]
+		layout3.append(line)
+
+		title2 = [sg.T('KM AND VMAX', size=(103,1), justification='center', pad=(1,1))]
+		layout3.append(title2)
+
+		headings2 =['Michaelis constant (Km)', 'Maximum Reaction Rate (Vmax)', 'Slope (Km/Vmax)']
+		leg2 = [sg.T(a, size=(34,1), background_color='white', justification='center', pad=(1,1)) for a in headings2]
+		layout3.append(leg2)
+
+		data2 = ["{:.5e}".format(slope/intercept), "{:.5e}".format(1/intercept), "{:.5e}".format(slope)]
+		row2 = [sg.T(a, size=(34,1), background_color='white', justification='center', pad=(1,1)) for a in data2]
+		layout3.append(row2)
+
+		line = [sg.T('', size=(15,1), justification='center', pad=(1,1))]
+		layout3.append(line)
+
+		title3 = [sg.T('LINEAR REGRESSION', size=(103,1), justification='center', pad=(1,1))]
+		layout3.append(title3)
+
+		headings3 = ['Correlation Coefficient (R)', 'Coefficient of Determination (R^2)', 'Standard error', 'P-Value']
+		leg3 = [sg.T(a, size=(25,1), background_color='white', justification='center', pad=(1,1)) for a in headings3]
+		layout3.append(leg3)
+
+		data3 = ["{:.5e}".format(rv), "{:.5e}".format(rv**2), "{:.5e}".format(std_err), "{:.5e}".format(pv)]
+		row3 = [sg.T(a, size=(25,1), background_color='white', justification='center', pad=(1,1)) for a in data3]
+		layout3.append(row3)
+
+		line = [sg.T('', size=(15,1), justification='center', pad=(1,1))]
+		layout3.append(line)
+
+		title4 = [sg.T('VARIANCES AND DEVIATIONS', size=(103,1), justification='center', pad=(1,1))]
+		layout3.append(title4)
+
+		headings4 = ['Population Variance (σ^2)', 'Population Standard Deviation (σ)', 'Sample Variance (S^2)', 'Sample Standard Deviation (S)']
+		leg4 = [sg.T(a, size=(25,1), background_color='white', justification='center', pad=(1,1)) for a in headings4]
+		layout3.append(leg4)
+
+		data4 = ["{:.5e}".format(errorg2), "{:.5e}".format(errorg), "{:.5e}".format(errors2), "{:.5e}".format(errors)]
+		row4 = [sg.T(a, size=(25,1), background_color='white', justification='center', pad=(1,1)) for a in data4]
+		layout3.append(row4)
+
+		line = [sg.T('', size=(15,1), justification='center', pad=(1,1))]
+		layout3.append(line)
+
+		GBM = ['PLOT', ['&Show plot::-SHP-', '&Rename graph::-RNG-', '&Save as pdf::-GPDF-', '&Save as png::-GPNG-', '&Save as jpg::-GJPG-']]
+		DSM = ['DSM', ['&Save as pdf::SPNG', '&Export to excel::-EXTE-']]
+		OPT = ['OPT', ['&Return to main menu::-RTMM-', '&End program::-ENP-']]
+
+		scroll = [[sg.Text('Project: '+prjname), sg.Text('Date of creation: '+doc)],
+				 [sg.Col(layout3, size=(846, 600), scrollable=True)], 
+				 [sg.ButtonMenu('PLOT', GBM, key='-GBM-', size=(38,1)), sg.ButtonMenu('DATA SET', DSM, key='-DSM-', size=(38,1)), sg.ButtonMenu('KM AND VMAX', DSM, key='-KAV-', size=(38,1))],
+				 [sg.ButtonMenu('LINEAR REGRESSION', DSM, key='-LNR-', size=(38,1)), sg.ButtonMenu('VARIANCES AND DEVIATIONS', DSM, key='-VAD-', size=(38,1)), sg.ButtonMenu('OPTIONS', OPT, key='-OPT-', size=(38,1))]]
+
+		dg = sg.FlexForm('LBplot', scroll)
+		eventg, valueg = dg.read()
+
+		if valueg == {'-GBM-': 'Show plot::-SHP-', '-DSM-': None, '-KAV-': None, '-LNR-': None, '-VAD-': None, '-OPT-': None}:
+			print('a')
+			dg.close()
+			plt.subplot()
+			pltnow(title, xx, yy, mymodel, x, uV, v)
+			plt.gca().yaxis.set_minor_formatter(NullFormatter())
+			plt.subplots_adjust(top=0.92, bottom=0.10, left=0.10, right=0.95, hspace=0.25,
+			                    wspace=0.35)
+			fig = plt.gcf()
+			figure_x, figure_y, figure_w, figure_h = fig.bbox.bounds
+			def draw_figure(canvas, figure, loc=(0, 0)):
+			    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+			    figure_canvas_agg.draw()
+			    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+			    return figure_canvas_agg
+			layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')],
+			[sg.Button('Continue', size = (21,1), key = '-grphr-')]]
+			window = sg.Window('LBplot', layout, finalize=True, element_justification = 'center')
+			fig_canvas_agg = draw_figure(window['canvas'].TKCanvas, fig)
+			event, values = window.read()
+			if event in (None, 'Exit'):
+				breaqui()
+				window.close()
+				break
+			elif event == '-grphr-':
+				window.close()
 				plt.clf()
 				plt.close()
 
-		elif me == '2':
-			cls()
+		elif valueg == {'-GBM-': 'Rename graph::-RNG-', '-DSM-': None, '-KAV-': None, '-LNR-': None, '-VAD-': None, '-OPT-': None}:
+			dg.close()
+			RNG1 = [[sg.Text("What should be the graph's title?")],
+			[sg.InputText('', size = (51,1), key= '-title-')],
+			[sg.Text("                                             "), sg.Button('Continue', size = (20,1), key = '-rnm1-')]]
+			dh = sg.Window('LBplot', RNG1, element_justification = 'left')
+			kt = 'a'
+			while kt == 'a':
+				eventh, valueh = dh.read()
+				if eventh == '-rnm1-':
+					title = str(valueh['-title-'])
+					dh.close()
+					RNG2 = [[sg.Text(title+" is now the graph's title!")],
+					[sg.Button('Continue', size = (21,1), key = '-rnm2-')]]
+					dj = sg.Window('LBplot', RNG2, element_justification = 'center')
+					kd = 'a'
+					while kd == 'a':
+						eventj, valuej = dj.read()
+						if eventj == '-rnm2-':
+							dj.close()
+							kt='b'
+							kd='b'
+							break
+
+		elif valueg == {'-GBM-': 'Save as pdf::-GPDF-', '-DSM-': None, '-KAV-': None, '-LNR-': None, '-VAD-': None, '-OPT-': None}:
+			pltnow(title, xx, yy, mymodel, x, uV, u, v)
+			dg.close()
+			savefig('.pdf')
 			plt.clf()
-			print('DATA SET')
-			opt()
+			plt.close()
+
+		elif valueg == {'-GBM-': 'Save as png::-GPNG-', '-DSM-': None, '-KAV-': None, '-LNR-': None, '-VAD-': None, '-OPT-': None}:
+			pltnow(title, xx, yy, mymodel, x, uV, u, v)
+			dg.close()
+			savefig('.png')
+			plt.clf()
+			plt.close()
+
+		elif valueg == {'-GBM-': 'Save as jpg::-GJPG-', '-DSM-': None, '-KAV-': None, '-LNR-': None, '-VAD-': None, '-OPT-': None}:
+			pltnow(title, xx, yy, mymodel, x, uV, u, v)
+			dg.close()
+			savefig('.jpg')
+			plt.clf()
+			plt.close()
+
+		elif eventg == '-DSM-':
+			plt.clf()
 			cap=[]
 			V0j = format(tmpV0, "{:.2e}")
 			oV0j = format(oV0, "{:.2e}")
@@ -238,68 +344,69 @@ def bulk():
     		'1/[S]': oSj 
     		}
 			df = pd.DataFrame(data, columns = ['','V0','1/V0','[S]','1/[S]'])
-			dst = input()
-			if dst == '1':
+			if valueg == {'-GBM-': None, '-DSM-': 'Save as pdf::SPNG', '-KAV-': None, '-LNR-': None, '-VAD-': None, '-OPT-': None}:
+				dg.close()
 				pdftable(df)
-			elif dst == '2':
+			elif valueg == {'-GBM-': None, '-DSM-': 'Export to excel::-EXTE-', '-KAV-': None, '-LNR-': None, '-VAD-': None, '-OPT-': None}:
+				dg.close()
 				exceltable(df)
 
-		elif me == '3':
-			cls()
+		elif eventg == '-KAV-':
 			plt.clf()
-			print('KM AND VMAX')
-			opt()
 			data = {
 			'Michaelis constant (Km)': [("{:.5e}".format(slope/intercept))],
 			'Maximum Reaction Rate (Vmax)': [("{:.5e}".format(1/intercept))],
 			'Slope (Km/Vmax)': [("{:.5e}".format(slope))]}
 			df = pd.DataFrame (data, columns = ['Michaelis constant (Km)', 'Maximum Reaction Rate (Vmax)', 'Slope (Km/Vmax)'])
-			dst = input()
-			if dst == '1':
+			if valueg == {'-GBM-': None, '-DSM-': None, '-KAV-': 'Save as pdf::SPNG', '-LNR-': None, '-VAD-': None, '-OPT-': None}:
+				dg.close()
 				pdftable(df)
-			elif dst == '2':
+			elif valueg == {'-GBM-': None, '-DSM-': None, '-KAV-': 'Export to excel::-EXTE-', '-LNR-': None, '-VAD-': None, '-OPT-': None}:
+				dg.close()
 				exceltable(df)
 
-		elif me == '4':
-			cls()
+		elif eventg == '-LNR-':
 			plt.clf()
-			print('LINEAR REGRESSION')
-			opt()
 			data = {
 			'Correlation Coefficient (R)': [("{:.5e}".format(rv))],
 			'Coefficient of Determination (R^2)': [("{:.5e}".format(rv**2))],
 			'Standard error': [("{:.5e}".format(std_err))],
 			'P-Value': [("{:.5e}".format(pv))]}
 			df = pd.DataFrame (data, columns = ['Correlation Coefficient (R)', 'Coefficient of Determination (R^2)','Standard error', 'P-Value'])
-			dst = input()
-			if dst == '1':
+			if valueg == {'-GBM-': None, '-DSM-': None, '-KAV-': None, '-LNR-': 'Save as pdf::SPNG', '-VAD-': None, '-OPT-': None}:
+				dg.close()
 				pdftable(df)
-			elif dst == '2':
+			elif valueg == {'-GBM-': None, '-DSM-': None, '-KAV-': None, '-LNR-': 'Export to excel::-EXTE-', '-VAD-': None, '-OPT-': None}:
+				dg.close()
 				exceltable(df)
 
-		elif me == '5':
-			cls()
+		elif eventg == '-VAD-':
 			plt.clf()
-			print('VARIANCES AND DEVIATIONS')
-			opt()
 			data = {
 			'Population Variance (σ^2)': [str("{:.5e}".format(errorg2))],
 			'Population Standard Deviation (σ)': [("{:.5e}".format(errorg))],
 			'Sample Variance (S^2)': [("{:.5e}".format(errors2))],
 			'Sample Standard Deviation (S)': [("{:.5e}".format(errors))]}
 			df = pd.DataFrame (data, columns = ['Population Variance (σ^2)', 'Population Standard Deviation (σ)', 'Sample Variance (S^2)', 'Sample Standard Deviation (S)'])
-			dst = input()
-			if dst == '1':
+			if valueg == {'-GBM-': None, '-DSM-': None, '-KAV-': None, '-LNR-': None, '-VAD-': 'Save as pdf::SPNG', '-OPT-': None}:
+				dg.close()
 				pdftable(df)
-			elif dst == '2':
+			elif valueg == {'-GBM-': None, '-DSM-': None, '-KAV-': None, '-LNR-': None, '-VAD-': 'Export to excel::-EXTE-', '-OPT-': None}:
+				dg.close()
 				exceltable(df)
 
-		elif me == '6':
+		elif valueg == {'-GBM-': None, '-DSM-': None, '-KAV-': None, '-LNR-': None, '-VAD-': None, '-OPT-': 'End program::-ENP-'}:
+			dg.close()
+			breaqui()
+			break
+
+		elif valueg == {'-GBM-': None, '-DSM-': None, '-KAV-': None, '-LNR-': None, '-VAD-': None, '-OPT-': 'Return to main menu::-RTMM-'}:
+			dg.close()
 			sm = 'end'
 			continue
 
-		elif me == '7':
-			st = 'end'
+		elif eventg in (None, 'Exit'):
+			breaqui()
 			break
 
 ##DIRECTORIES##
@@ -308,47 +415,55 @@ cwd = os.getcwd()
 arq = cwd+os.sep+'Archives'+os.sep
 pro = cwd+os.sep+'Projects'+os.sep
 
+##GUI##
+
+sg.theme('SystemDefault')
+
 ##PROGRAM##
 
 st='start'
 me = '0'
 while st == 'start':
 	prjname = ''
+	if st != 'start':
+		break
 	if me =='7':
 		break
 	V0 = []
 	S = []
 	oV0 = []
 	oS = []
-	cls()
-	print('''What would you like to access?
-	1-Start new project
-	2-Load previous projects
-	3-References
-	4-Licence
-	5-End program''')
-	ii = input()
-	if ii == '1':
-		cls()
-		print('What will be the project name?')
-		prjname = input()
-		cls()
-		print('''Would you like to insert values of V0 and [S] or 1/V0 and 1/[S]?
-	1- V0 and [S]
-	2- 1/V0 and 1/[S]''')
-		k = input()
-		print('''\nWhich are the the unities your data use?
-V0:''')
-		u = input()
-		uV = u.split('/')
-		print('[S]:')
-		v = input()
-		if k == '1':
-			print('\nInsert V0 values:')
-			tmpV0 = (input().replace(' ', '')).split(',')
-			print('Insert [S] values:')
-			tmpS = (input().replace(' ', '')).split(',')
 
+	DI()
+	event, values = de.Read()
+
+	if event in (None, 'Exit'):
+		break
+
+	elif event == 'Start new project':
+		de.close()
+		f_layout1 = [[sg.Text('What units does your data use?')],
+			[sg.Text('V0 unit:'), sg.InputText("μM/s", size = (51,1), key= '-f2-')],
+			[sg.Text('[S] unit:'), sg.InputText("μM", size = (51,1), key= '-f3-')]]  
+
+		f_layout2 = [[sg.Text('Insert your data:')],
+			[sg.Text('V0:'), sg.Multiline("0.11E-9, 0.25E-9, 0.34E-9, 0.45E-9, 0.58E-9, 0.61E-9", size = (52,6), key= '-f4-')],
+			[sg.Text('[S]:'), sg.Multiline("0.1E-5, 0.3E-5, 0.5E-5, 1E-5, 3E-5, 5E-5", size = (52,6), key= '-f5-')]]            
+
+		layout2 = [[sg.Text('Project name:'), sg.InputText('', size=(47,1), key = '-f1-')],
+			[sg.Frame('Units', f_layout1)],
+			[sg.Frame('Data Set', f_layout2)],
+			[sg.Button('Continue', size = (20,1), key = '-ff-')]]
+
+		df = sg.Window('LBplot', layout2, element_justification = 'center')
+		buttonf, valuef = df.read()
+		if buttonf == '-ff-':
+			prjname = str(valuef['-f1-'])
+			u = str(valuef['-f2-'])
+			uV = u.split('/')
+			v = str(valuef['-f3-'])
+			tmpV0 = (str(valuef['-f4-']).replace(' ', '').replace('\n', '')).split(',')
+			tmpS = (str(valuef['-f5-']).replace(' ', '').replace('\n', '')).split(',')
 			for a in tmpV0:
 				oa = 1.0/float(a)
 				oV0.append(oa)
@@ -357,21 +472,7 @@ V0:''')
 				ob = 1.0/float(b)
 				oS.append(ob)
 
-		elif k == '2':
-			print('Insert 1/V0 values:')
-			oV0 = float(input().replace(' ', '')).split(',')
-			print('Insert 1/[S] values:')
-			oS = float(input().replace(' ', '')).split(',')
-
-			for a in oV0:
-				oa = 1.0/float(a)
-				tmpV0.append(oa)
-
-			for b in oS:
-				ob = 1.0/float(b)
-				tmpS.append(ob)
-
-		depo = open(pro+prjname+'.txt', 'w')
+		depo = open(pro+prjname+'.txt', 'w', encoding='utf-8')
 		depo.write(prjname+'\n')
 		depo.write(str(tmpV0)+'\n')
 		depo.write(str(tmpS)+'\n')
@@ -381,22 +482,36 @@ V0:''')
 		depo.write(v)
 		depo.close()
 
+		totalnow = calendar.timegm(time.gmtime())
+		localnow = calendar.timegm(datetime.now().timetuple())
+		doct = os.path.getmtime(pro+prjname+'.txt')
+		tx = totalnow - localnow
+		tz = doct - tx
+		doc = datetime.utcfromtimestamp(tz).strftime('%Y-%m-%d %H:%M:%S')
+
+		df.close()
+
 		bulk()
 
-	if ii=='2':
-		cls()
-		print('Which arquive would you like to open?')
+	elif event == 'Load previous projects':
+		de.close()
+		olinda=[]
 		files = [f for f in os.listdir(pro) if os.path.isfile(pro+f)]
 		for a in range(len(files)):
-			print(str(a+1)+'-'+(files[a]).replace('.txt',''))
-		print(str(len(files)+1)+'-Return to main menu')
-		ardepo = input()
-		try:
-			retri = files[int(ardepo)-1]
-		except IndexError:
+			olinda.append((files[a]).replace('.txt',''))
+
+		llpp = [[sg.Text('Which project would you like to load?')],
+			[sg.Listbox(values=olinda, size=(35, 10), select_mode='LISTBOX_SELECT_MODE_EXTENDED', enable_events= True)],
+			[sg.Button('Return to main menu', size = (30,1), key = '-CONT-')]]
+
+		lpp = sg.Window('LBplot', llpp, element_justification = 'center')
+		eventlpp, valuelpp = lpp.read()
+		if eventlpp == '-CONT-':
+			lpp.close()
 			continue
 		else:
-			fop = open(pro+retri, 'r')
+			fopt = (str(valuelpp).replace("{0: ['", '').replace("']}", '')+'.txt')
+			fop = open(pro+fopt, 'r')
 			rfop = fop.readlines()
 			prjname = rfop[0].replace('\n', '')
 			tmpV0 = (rfop[1].replace("['", '').replace("']\n", '').split("', '"))
@@ -408,43 +523,41 @@ V0:''')
 			oS = (rfop[4].replace("[", '').replace("]\n", '').split(", "))
 			oS = floatit(oS)
 			if ',' in rfop[5]:
-				uV = (rfop[5].replace("['", '').replace("']\n", '').split("', '"))
+				uV = (rfop[5].replace("['", '').replace("']\n", '').replace('Î¼', 'μ').split("', '"))
+				print(uV)
 			else:
-				uV = rfop[5].replace('\n', '')
-			v = rfop[6]
+				uV = rfop[5].replace('\n', '').replace('Î¼', 'μ')
+			v = (rfop[6].replace('Î¼', 'μ'))
+			print(v)
+
+			totalnow = calendar.timegm(time.gmtime())
+			localnow = calendar.timegm(datetime.now().timetuple())
+			doct = os.path.getmtime(pro+fopt)
+			tx = totalnow - localnow
+			tz = doct - tx
+			doc = datetime.utcfromtimestamp(tz).strftime('%Y-%m-%d %H:%M:%S')
+
+			lpp.close()
 
 			bulk()
 
-	if ii=='3':
-		cls()
-		print('REFERENCES')
-		print(References)
-		menu()
-		me = input()
-		if me == '1':
-			continue
-		if me == '2':
-			break
+	elif event == 'References':
+		de.close()
+		lzo = [[sg.Text('REFERENCES', justification='center')],
+			[sg.Text(References+'\n')],
+			[sg.Button('Return to main menu', size = (30,1))]]
+		llzo = sg.Window('LBplot', lzo, element_justification = 'center')
+		eventlzo, valuelzo = llzo.read()
+		llzo.close()
 
-	if ii=='4':
-		cls()
-		print(License)
-		ma = '0'
-		while ma!='1':
-			print('\nInput 1 to continue:')
-			ma = input()
-		cls()
-		print('''Note: If you find some error or have some improvement suggestion, it would be very nice of you to send it on the GitHub repository or email me at hector.kroes@outlook.com
+	elif event == 'Credits':
+		de.close()
+		lzo = [[sg.Text('CREDITS', justification='center')],
+			[sg.Text("LBplot was made by Hector Kroes and it's available for\nfree download at <https://github.com/HectorKroes/LBplot>.\nIf you find errors, problems, or have a suggestion, please\nsubmit it at the GitHub repository or send an email to\nhector.kroes@outlook.com\n\nThank you!"+'\n')],
+			[sg.Button('Return to main menu', size = (30,1))]]
+		llzo = sg.Window('LBplot', lzo, element_justification = 'center')
+		eventlzo, valuelzo = llzo.read()
+		llzo.close()
 
-Thank you!''')
-		menu()
-		me = input()
-		if me == '1':
-			continue
-		if me == '2':
-			break
-
-	if ii=='5':
+	elif event == 'End program':
 		break
-
-print('\nProgram suspended!')
