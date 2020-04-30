@@ -247,7 +247,7 @@ def bulk():
 		OPT = ['OPT', ['&Return to main menu::-RTMM-', '&End program::-ENP-']]
 
 		scroll = [[sg.Text('Project: '+prjname), sg.Text('Date of creation: '+doc)],
-				 [sg.Col(layout3, size=(846, 600), scrollable=True)], 
+				 [sg.Col(layout3, size=(846, 500), scrollable=True, vertical_scroll_only=True)], 
 				 [sg.ButtonMenu('PLOT', GBM, key='-GBM-', size=(38,1)), sg.ButtonMenu('DATA SET', DSM, key='-DSM-', size=(38,1)), sg.ButtonMenu('KM AND VMAX', DSM, key='-KAV-', size=(38,1))],
 				 [sg.ButtonMenu('LINEAR REGRESSION', DSM, key='-LNR-', size=(38,1)), sg.ButtonMenu('VARIANCES AND DEVIATIONS', DSM, key='-VAD-', size=(38,1)), sg.ButtonMenu('OPTIONS', OPT, key='-OPT-', size=(38,1))]]
 
@@ -260,7 +260,7 @@ def bulk():
 			plt.subplot()
 			pltnow(title, xx, yy, mymodel, x, uV, v)
 			plt.gca().yaxis.set_minor_formatter(NullFormatter())
-			plt.subplots_adjust(top=0.92, bottom=0.10, left=0.10, right=0.95, hspace=0.25,
+			plt.subplots_adjust(top=0.90, bottom=0.10, left=0.14, right=0.95, hspace=0.25,
 			                    wspace=0.35)
 			fig = plt.gcf()
 			figure_x, figure_y, figure_w, figure_h = fig.bbox.bounds
@@ -524,11 +524,9 @@ while st == 'start':
 			oS = floatit(oS)
 			if ',' in rfop[5]:
 				uV = (rfop[5].replace("['", '').replace("']\n", '').replace('Î¼', 'μ').split("', '"))
-				print(uV)
 			else:
 				uV = rfop[5].replace('\n', '').replace('Î¼', 'μ')
 			v = (rfop[6].replace('Î¼', 'μ'))
-			print(v)
 
 			totalnow = calendar.timegm(time.gmtime())
 			localnow = calendar.timegm(datetime.now().timetuple())
