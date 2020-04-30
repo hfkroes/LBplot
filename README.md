@@ -1,5 +1,5 @@
 ![](https://i.imgur.com/3zeFgSl.png?1)
->LBplot is a python program that can be runned on command prompt to easily plot linear Lineweaver-Burk plots through the input of [S] and V0 values. The current version is 2.4 but version 3.0 is being coded right now with a brand new GUI.
+>LBplot is a python program that can be runned on command prompt to easily plot linear Lineweaver-Burk plots through the input of [S] and V0 values.
 
 # Output
 The program process the data you inserted and shows this screen where you can see an overview of the data obtained. You  can open your plotted graph or any of the tables and save them from here.
