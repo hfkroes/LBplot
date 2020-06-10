@@ -1,7 +1,7 @@
 '''
-Program: LBplot v3.0
+Program: LBplot v3.1
 Author: Hector Kroes
-Released: 04/23/2020
+Released: 06/10/2020
 Available in <https://github.com/HectorKroes/LBplot>
 '''
 
@@ -423,7 +423,7 @@ sg.theme('SystemDefault')
 
 st='start'
 me = '0'
-while st == 'start':
+while st == 'start': 
 	prjname = ''
 	if st != 'start':
 		break
@@ -495,49 +495,80 @@ while st == 'start':
 
 	elif event == 'Load previous projects':
 		de.close()
-		olinda=[]
-		files = [f for f in os.listdir(pro) if os.path.isfile(pro+f)]
-		for a in range(len(files)):
-			olinda.append((files[a]).replace('.txt',''))
+		stb = 'prj'
+		while stb == 'prj':
+			olinda=[]
+			files = [f for f in os.listdir(pro) if os.path.isfile(pro+f)]
+			for a in range(len(files)):
+				olinda.append((files[a]).replace('.txt',''))
 
-		llpp = [[sg.Text('Which project would you like to load?')],
-			[sg.Listbox(values=olinda, size=(35, 10), select_mode='LISTBOX_SELECT_MODE_EXTENDED', enable_events= True)],
-			[sg.Button('Return to main menu', size = (30,1), key = '-CONT-')]]
+			llpp = [[sg.Text('Which project would you like to load?')],
+				[sg.Listbox(values=olinda, size=(35, 10), select_mode='LISTBOX_SELECT_MODE_EXTENDED', enable_events= True)],
+				[sg.Button('Return to main menu', size = (30,1), key = '-CONT-')]]
 
-		lpp = sg.Window('LBplot', llpp, element_justification = 'center')
-		eventlpp, valuelpp = lpp.read()
-		if eventlpp == '-CONT-':
-			lpp.close()
-			continue
-		else:
-			fopt = (str(valuelpp).replace("{0: ['", '').replace("']}", '')+'.txt')
-			fop = open(pro+fopt, 'r')
-			rfop = fop.readlines()
-			prjname = rfop[0].replace('\n', '')
-			tmpV0 = (rfop[1].replace("['", '').replace("']\n", '').split("', '"))
-			tmpV0 = floatit(tmpV0)
-			tmpS = (rfop[2].replace("['", '').replace("']\n", '').split("', '"))
-			tmpS = floatit(tmpS)
-			oV0 = (rfop[3].replace("[", '').replace("]\n", '').split(", "))
-			oV0 = floatit(oV0)
-			oS = (rfop[4].replace("[", '').replace("]\n", '').split(", "))
-			oS = floatit(oS)
-			if ',' in rfop[5]:
-				uV = (rfop[5].replace("['", '').replace("']\n", '').replace('Î¼', 'μ').split("', '"))
+			lpp = sg.Window('LBplot', llpp, element_justification = 'center')
+			eventlpp, valuelpp = lpp.read()
+
+			if eventlpp == '-CONT-':
+				lpp.close()
+				stb = 'stop'
+				continue
+
 			else:
-				uV = rfop[5].replace('\n', '').replace('Î¼', 'μ')
-			v = (rfop[6].replace('Î¼', 'μ'))
+				lpp.close()
 
-			totalnow = calendar.timegm(time.gmtime())
-			localnow = calendar.timegm(datetime.now().timetuple())
-			doct = os.path.getmtime(pro+fopt)
-			tx = totalnow - localnow
-			tz = doct - tx
-			doc = datetime.utcfromtimestamp(tz).strftime('%Y-%m-%d %H:%M:%S')
+				fopt = (str(valuelpp).replace("{0: ['", '').replace("']}", '')+'.txt')
+				totalnow = calendar.timegm(time.gmtime())
+				localnow = calendar.timegm(datetime.now().timetuple())
+				doct = os.path.getmtime(pro+fopt)
+				tx = totalnow - localnow
+				tz = doct - tx
+				doc = datetime.utcfromtimestamp(tz).strftime('%Y-%m-%d %H:%M:%S')
 
-			lpp.close()
+				llpa = [[sg.Text(str(valuelpp).replace("{0: ['", '').replace("']}", ''))],
+				[sg.Text('Date of creation: ' + doc)],
+				[sg.Button('Load', size = (15,1), key = '-LOAD-'), sg.Button('Delete', size = (15,1), key = '-DEL-')]]
+				lpa = sg.Window('LBplot', llpa, element_justification = 'center')
+				eventlpa, valuelpa = lpa.read()
 
-			bulk()
+				if eventlpa == '-LOAD-':
+					fop = open(pro + fopt, 'r')
+					rfop = fop.readlines()
+					prjname = rfop[0].replace('\n', '')
+					tmpV0 = (rfop[1].replace("['", '').replace("']\n", '').split("', '"))
+					tmpV0 = floatit(tmpV0)
+					tmpS = (rfop[2].replace("['", '').replace("']\n", '').split("', '"))
+					tmpS = floatit(tmpS)
+					oV0 = (rfop[3].replace("[", '').replace("]\n", '').split(", "))
+					oV0 = floatit(oV0)
+					oS = (rfop[4].replace("[", '').replace("]\n", '').split(", "))
+					oS = floatit(oS)
+					if ',' in rfop[5]:
+						uV = (rfop[5].replace("['", '').replace("']\n", '').replace('Î¼', 'μ').split("', '"))
+					else:
+						uV = rfop[5].replace('\n', '').replace('Î¼', 'μ')
+					v = (rfop[6].replace('Î¼', 'μ'))
+
+					stb = 'stop'
+					lpa.close()
+
+					bulk()
+
+				elif eventlpa == '-DEL-':
+					lpa.close()
+					llpb = [[sg.Text('Are you sure you want to delete')],
+					[sg.Text((str(valuelpp).replace("{0: ['", '').replace("']}", '')) + '?')],
+					[sg.Button('Yes, delete it', size = (15,1), key = '-YES-'), sg.Button('No, keep it', size = (15,1), key = '-NO-')]]
+					lpb = sg.Window('LBplot', llpb, element_justification = 'center')
+					eventlpb, valuelpb = lpb.read()
+
+					if eventlpb == '-YES-':
+						arch = pro + fopt
+						os.remove(arch)
+						lpb.close()
+
+					else:
+						continue
 
 	elif event == 'References':
 		de.close()
